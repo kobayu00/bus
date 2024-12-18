@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>バス時刻表</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    #chimei {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+    #clock {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    #bus-timetable {
+      font-size: 1.2em;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div id="chimei">悠久山公園入口→長岡駅</div>
+  <div id="clock">現在時刻：--:--:--</div>
+  <div id="bus-timetable">バス時刻を読み込み中...</div>
+
+  <script>
+    // 現在時刻を表示する関数
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `現在時刻：${hours}:${minutes}:${seconds}`;
+    }
+
+    // バスの時刻表データ
+    const busTimetable = [
+      '06:36', '06:51', '07:06', '07:21', '07:31', '07:46',
+      '08:06', '08:26', '08:46', '09:06', '09:26', '09:46',
+      '10:06', '10:26', '10:46', '11:06', '11:26', '11:46',
+      '12:06', '12:26', '12:46', '13:06', '13:26', '13:46',
+      '14:06', '14:26', '14:46', '15:01', '15:21', '15:41',
+      '16:01', '16:21', '16:41', '16:56', '17:11', '17:26',
+      '17:41', '17:56', '18:11', '18:26', '18:46', '19:16',
+      '19:46', '20:16', '20:46'
+    ];
+
+    // 次の3つのバス出発時間と到着時間を表示する関数
+    function updateBusTimetable() {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      let nextBuses = [];
+
+      for (const time of busTimetable) {
+        const [hours, minutes] = time.split(':').map(Number);
+        const busTime = hours * 60 + minutes;
+        if (busTime > currentTime) {
+          // 到着時間を13分追加して計算
+          const arrivalMinutes = busTime + 13;
+          const arrivalHours = Math.floor(arrivalMinutes / 60) % 24;
+          const arrivalMins = arrivalMinutes % 60;
+
+          nextBuses.push({
+            departure: time,
+            arrival: `${String(arrivalHours).padStart(2, '0')}:${String(arrivalMins).padStart(2, '0')}`,
+            minutesLeft: busTime - currentTime
+          });
+        }
+        if (nextBuses.length === 3) break; // 次の3つまで取得
+      }
+
+      let displayText = nextBuses.length > 0
+        ? nextBuses.map(bus => 
+            `出発: ${bus.departure}（あと${bus.minutesLeft}分）→${bus.arrival}到着`
+          ).join('<br><br>')
+        : '本日の運行は終了しました';
+
+      document.getElementById('bus-timetable').innerHTML = displayText;
+    }
+
+    // 時間の更新
+    setInterval(updateClock, 1000);
+    setInterval(updateBusTimetable, 30000);
+    updateClock();
+    updateBusTimetable();
+  </script>
+</body>
+</html>
